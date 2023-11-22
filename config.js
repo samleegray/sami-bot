@@ -24,7 +24,7 @@ if (typeof characterName !== 'string') {
 const disableTracking = process.env.DW_DISABLE_TRACKING === "true"
 
 /** @var {string} */
-const script = process.argv[2] ?? process.env.DW_SCRIPT ?? 'src/starter.js'
+const script = process.argv[2] ?? process.env.DW_SCRIPT ?? './src/main.js'
 
 module.exports = {
   username,
