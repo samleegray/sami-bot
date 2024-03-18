@@ -9,6 +9,7 @@ type Breadcrumb = {
 }
 
 let breadcrumbs = new Array<Breadcrumb>()
+let range = 20
 
 // Function to fetch the closest breadcrumb given a position.
 export function getClosestBreadcrumb(x: number, y: number, z: number) {
@@ -36,8 +37,8 @@ function getBreadcrumb(x: number, y: number, z: number) {
 export default function getBreadcrumbs() {
   const result = new Array<Pick<Breadcrumb, 'x' | 'y' | 'value'>>()
 
-  for (let wy = Math.floor(dw.c.y - 10); wy <= dw.c.y + 10; wy++) {
-    for (let wx = Math.floor(dw.c.x - 10); wx <= dw.c.x + 10; wx++) {
+  for (let wy = Math.floor(dw.c.y - range); wy <= dw.c.y + range; wy++) {
+    for (let wx = Math.floor(dw.c.x - range); wx <= dw.c.x + range; wx++) {
       const wall = dw.getTerrain(wx, wy, dw.c.z)
       const floor = dw.getTerrain(wx, wy, dw.c.z - 1)
 
@@ -64,8 +65,8 @@ function dropBreadcrumb() {
 
   breadcrumbs.forEach((b) => b.value *= 0.999)
 
-  for (let dy = -1; dy <= 1; dy++) {
-    for (let dx = -1; dx <= 1; dx++) {
+  for (let dy = -range; dy <= range; dy++) {
+    for (let dx = -range; dx <= range; dx++) {
       const breadcrumb = breadcrumbs.find(
         (b) => b.x === x + dx && b.y === y + dy && b.z === z,
       )

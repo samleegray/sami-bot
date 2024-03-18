@@ -4,17 +4,14 @@ import { getClosestBreadcrumb } from '../breadcrumbs'
 
 //
 
-var nextLocation = null;
+var nextLocation: { x: any; y: any; z?: number; value?: number; time?: number; } | null = null;
 // Function to deduce next determined location.
 function getNextLocation() {
     // Get a random number between -2 and 2.
-    let rand = Math.floor(Math.random() * 10) - 5;
-    let rand2 = Math.floor(Math.random() * 10) - 5;
+    let randX = Math.floor(Math.random() * 10) - 5;
+    let randY = Math.floor(Math.random() * 10) - 5;
 
-    let closet = getClosestBreadcrumb(dw.c.x + rand, dw.c.y + rand2, dw.c.z);
-
-    closet.x = dw.c.x + rand;
-    closet.y = dw.c.y + rand2;
+    let closet = getClosestBreadcrumb(dw.c.x + randX, dw.c.y + randY, dw.c.z);
 
     nextLocation = closet;
     return closet;

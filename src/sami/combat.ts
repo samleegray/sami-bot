@@ -55,6 +55,7 @@ export class CombatManager {
         dw.useSkill(this.charInfo.healSkill, dw.c.id)
     }
 
+    // Sets target, decides if we should heal, determines if we can attack and then tries to.
     private handleCombat(target: any) {
         dw.setTarget(target.id)
 
@@ -69,22 +70,25 @@ export class CombatManager {
         }
     }
 
+    // Attempt attack.
     private attemptAttack(target: any) {
-        // Get distance to target.
-        // let distanceToTarget = dw.distance(dw.c.x, dw.c.y, target.x, target.y);
-        // dw.log(`distanceToTarget: ${JSON.stringify(distanceToTarget)}`);
-
+        // The skill to finally use.
         let skillToUse
+
+        // Go with magic first, secondary melee if they're close.
         if (dw.canUseSkillRange(this.charInfo.magicSkill, target)) {
             skillToUse = this.charInfo.magicSkill
         } else if (dw.canUseSkillRange(this.charInfo.meleeSkill, target)) {
             skillToUse = this.charInfo.meleeSkill
         }
 
+        // If we have no skill to use, we aren't close enough.
         if (skillToUse == undefined) {
-            console.log("Not in range.")
+            console.log("Not in range, moving.")
+            // Need to refactor movement into one location based on target & ability to get there.
+            // Going from A to B just makes me fall into water/holes if they're on the path.
             dw.move(target.x, target.y)
-            return;
+            return
         }
 
         // If we can't use the skill, skip.
@@ -92,26 +96,11 @@ export class CombatManager {
           return
         }
 
+        // Finally, use the skill to attack.
         dw.useSkill(skillToUse, target.id)
-
-        // // Should add case here for when we're in range to use magic.
-        // if (dw.canUseSkillRange(this.charInfo.magicSkill, target)) {
-        //     dw.useSkill(this.charInfo.magicSkill, target.id);
-        //     didFire = true;
-        // } else if (dw.canUseSkillRange(this.charInfo.meleeSkill, target.x, target.y) &&
-        //     distanceToTarget <= this.charInfo.meleeRange) {
-        //     dw.useSkill(this.charInfo.meleeSkill, target.id);
-        //     didFire = true;
-        // }
-
-        // If we're in combat or fired, stop moving.
-        // if (this.isInCombat() || didFire) {
-        //     // dw.move(dw.c.x, dw.c.y)
-        // } else {
-        //     dw.move(target.x, target.y);
-        // }
     }
 
+    // Main loop for combat.
     public combatLoop() {
         const target = targetManager.nextTarget();
 

@@ -9,34 +9,35 @@ import '../ui-breadcrumbs';
 import '../ui-line-of-sight'
 import '../ui-collision-boxes'
 
-const gatheringManager = new GatheringManager();
-const combatManager = new CombatManager();
+const gatheringManager = new GatheringManager()
+const combatManager = new CombatManager()
 // Set to true if we only want to defend ourselves.
-combatManager.defenseMode = false;
-let shouldGather = true;
-let shouldAttack = true;
+combatManager.defenseMode = true
+let shouldGather = false
+let shouldAttack = false
+let shouldExplore = false
 
-var mouseKeyDown = false;
+var mouseKeyDown = false
 
 // Main loop with all logic contained within.
 function mainLoop() {
     if (mouseKeyDown) {
-        return;
+        return
     }
 
     // dw.setSpawn();
 
     // If we're in combat, only focus on combat.
     if (combatManager.isInCombat()) {//|| !gatheringManager.hasGatherTarget) {
-        combatManager.combatLoop();
-        return;
+        combatManager.combatLoop()
+        return
     }
 
     // console.log("chunks: " + JSON.stringify(dw.chunks));
 
     // If we should gather, try to.
     if (shouldGather) {
-        gatheringManager.gatherLoop();
+        gatheringManager.gatherLoop()
     }
 
     // If we're not in defense mode, and have no gathering target proceed to combat.
@@ -44,7 +45,7 @@ function mainLoop() {
         combatManager.combatLoop();
     }
 
-    if (!combatManager.isInCombat() && !combatManager.hasTarget && !gatheringManager.hasGatherTarget) {
+    if (shouldExplore && !combatManager.isInCombat() && !combatManager.hasTarget && !gatheringManager.hasGatherTarget) {
         exploreLoop();
     }
 
