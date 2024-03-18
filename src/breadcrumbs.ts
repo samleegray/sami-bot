@@ -8,6 +8,17 @@ type Breadcrumb = {
 
 let breadcrumbs = new Array<Breadcrumb>()
 
+// Function to fetch the closest breadcrumb given a position.
+export function getClosestBreadcrumb(x: number, y: number, z: number) {
+  return breadcrumbs
+    .filter((b) => b.z === z)
+    .sort((a, b) => {
+      const distA = Math.abs(a.x - x+2) + Math.abs(a.y - y+2)
+      const distB = Math.abs(b.x - x-2) + Math.abs(b.y - y-2)
+      return distA - distB
+    })[0]
+}
+
 function getBreadcrumb(x: number, y: number, z: number) {
   const breadcrumb = breadcrumbs.find(
     (b) => b.x === x && b.y === y && b.z === z,
