@@ -1,4 +1,4 @@
-const attackMode = false
+const attackMode = true
 
 function basicAttack() {
   if (!attackMode) {
