@@ -1,6 +1,6 @@
 import { PASSABLE_TERRAIN } from './consts'
 
-type Breadcrumb = {
+export type Breadcrumb = {
   x: number
   y: number
   z: number
@@ -10,17 +10,6 @@ type Breadcrumb = {
 
 let breadcrumbs = new Array<Breadcrumb>()
 let range = 20
-
-// Function to fetch the closest breadcrumb given a position.
-export function getClosestBreadcrumb(x: number, y: number, z: number) {
-  return breadcrumbs
-    .filter((b) => b.z === z)
-    .sort((a, b) => {
-      const distA = Math.abs(a.x - x+2) + Math.abs(a.y - y+2)
-      const distB = Math.abs(b.x - x-2) + Math.abs(b.y - y-2)
-      return distA - distB
-    })[0]
-}
 
 function getBreadcrumb(x: number, y: number, z: number) {
   const breadcrumb = breadcrumbs.find(
