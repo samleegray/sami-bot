@@ -15,7 +15,7 @@ export function traversalLoop()  {
     // Get next target.
     let target = targetManager.nextTarget()
     if (target !== undefined) {
-        if (dw.md.entities[target.md].isMonster && dw.distance(target.x, target.y, dw.c.x, dw.c.y) < 3) {
+        if (dw.md.entities[target.md].isMonster && dw.distance(target.x, target.y, dw.c.x, dw.c.y) < 3.75) {
             return
         }
         let closest = getClosestBreadcrumb(target.x, target.y, target.z)
