@@ -1,10 +1,8 @@
-import { getClosestBreadcrumb } from '../breadcrumbs'
+import { getClosestBreadcrumb } from './traversal'
 
-// Function to breadcrumbs and begin following them.
-
-//
-
+// Variable to store the next determined location.
 var nextLocation: { x: any; y: any; z?: number; value?: number; time?: number; } | null = null;
+
 // Function to deduce next determined location.
 function getNextLocation() {
     // Get a random number between -2 and 2.

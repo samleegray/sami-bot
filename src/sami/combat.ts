@@ -84,11 +84,11 @@ export class CombatManager {
 
         // If we have no skill to use, we aren't close enough.
         if (skillToUse == undefined) {
-            console.log("Not in range, moving.")
+            // console.log("Not in range, moving.")
             // Need to refactor movement into one location based on target & ability to get there.
             // Going from A to B just makes me fall into water/holes if they're on the path.
-            dw.move(target.x, target.y)
-            return
+            // dw.move(target.x, target.y)
+            // return
         }
 
         // If we can't use the skill, skip.
