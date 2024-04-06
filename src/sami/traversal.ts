@@ -13,20 +13,20 @@ type Location = {
 
 export function traversalLoop()  {
     // Get next target.
-    let target = targetManager.nextTarget()
-    if (target !== undefined) {
-        if (dw.md.entities[target.md].isMonster && dw.distance(target.x, target.y, dw.c.x, dw.c.y) < 3.75) {
-            return
-        }
-        let closest = getClosestBreadcrumb(target.x, target.y, target.z)
-        dw.move(closest.x, closest.y)
-        return
-    }
+    // let target = targetManager.nextTarget()
+    // if (target !== undefined) {
+    //     if (dw.md.entities[target.md].isMonster && dw.distance(target.x, target.y, dw.c.x, dw.c.y) < 3.75) {
+    //         return
+    //     }
+    //     let closest = getClosestBreadcrumb(target.x, target.y, target.z)
+    //     dw.move(closest.x, closest.y)
+    //     return
+    // }
 
     let losBreadcrumbs = getBreadcrumbsInLineOfSight()
     let losBreadcrumb = losBreadcrumbs[0]
 
-    dw.move(losBreadcrumb.x, losBreadcrumb.y)
+    // dw.move(losBreadcrumb.x, losBreadcrumb.y)
 }
 
 // Function to get breadcrumbs within line of site of the character. Sorted by distance from character.
@@ -36,8 +36,8 @@ export function getBreadcrumbsInLineOfSight() : Pick<Breadcrumb, 'x' | 'y' | 'va
 
     return getBreadcrumbs().filter(
         (b) => hasLineOfSight({x: b.x+0.5, y: b.y+0.5, z: dw.c.z}, cx, cy)
-    ).sort()
-        //.sort((a, b) => dw.distance(a.x, a.y, cx, cy) - dw.distance(b.x, b.y, cx, cy))
+    )//.sort()
+        // .sort((a, b) => dw.distance(a.x, a.y, cx, cy) - dw.distance(b.x, b.y, cx, cy))
 }
 
 // Function to get next location from the character location to the target location.
