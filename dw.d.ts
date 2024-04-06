@@ -58,12 +58,22 @@ declare namespace DeepestWorld {
      */
     canUseSkillCd(skillIndex?: number): boolean
 
+    canUseRune(
+      runeIndex,
+      ...args: [number] | [number, number] | [{x: number, y: number}]
+    ): boolean
+
     canUseSkillCost(skillIndex?: number): boolean
 
     canUseSkillRange(
       skillIndex,
       ...args: [number] | [number, number] | [{ x: number; y: number }]
     ): boolean
+
+      isInRange(
+          runeIndex,
+          ...args: [number] | [number, number] | [{x: number, y: number}]
+      ): boolean
 
     chatHideDelay: number
 
@@ -900,6 +910,21 @@ declare namespace DeepestWorld {
     // useSkill(skillIndex: number, x: number, y: number, z?: number): void
 
     useSkill(
+      skillIndex: number,
+      ...args:
+        | [number]
+        | [number, number]
+        | [number, number, number]
+        | [
+        {
+          x: number
+          y: number
+          z?: number
+        },
+      ]
+    )
+
+    useRune(
       skillIndex: number,
       ...args:
         | [number]

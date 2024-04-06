@@ -8,6 +8,7 @@ import '../ui-stats-panel';
 import '../ui-breadcrumbs';
 import '../ui-line-of-sight'
 import '../ui-collision-boxes'
+import '../ui-xp-tracker'
 import {traversalLoop} from "./traversal";
 
 const gatheringManager = new GatheringManager()

@@ -3,22 +3,24 @@ import { TargetManager } from "./target";
 const targetManager = new TargetManager();
 
 export class CharInfo {
-    minHp: number;
-    minMp: number;
-    meleeSkill: number;
-    magicSkill: number;
-    healSkill: number;
-    restingHealThreshold: number;
-    meleeRange: number;
+    minHp: number
+    minMp: number
+    meleeSkill: number
+    magicSkill: number
+    healSkill: number
+    shieldSkill: number
+    restingHealThreshold: number
+    meleeRange: number
 
     constructor() {
-        this.minHp = 240;
-        this.minMp = 130;
+        this.minHp = 240
+        this.minMp = 130
         this.meleeSkill = 0
-        this.magicSkill = 1;
-        this.healSkill = 2;
-        this.restingHealThreshold = this.minHp;
-        this.meleeRange = 0.5;
+        this.magicSkill = 1
+        this.healSkill = 2
+        this.shieldSkill = 4
+        this.restingHealThreshold = this.minHp
+        this.meleeRange = 0.5
     }
 
 }
@@ -76,33 +78,24 @@ export class CombatManager {
         let skillToUse
 
         // Go with magic first, secondary melee if they're close.
-        if (dw.canUseSkillRange(this.charInfo.magicSkill, target)) {
+        if (dw.isInRange(this.charInfo.magicSkill, target)) {
             skillToUse = this.charInfo.magicSkill
-        } else if (dw.canUseSkillRange(this.charInfo.meleeSkill, target)) {
+        } else if (dw.isInRange(this.charInfo.meleeSkill, target)) {
             skillToUse = this.charInfo.meleeSkill
         }
 
-        // If we have no skill to use, we aren't close enough.
-        if (skillToUse == undefined) {
-            // console.log("Not in range, moving.")
-            // Need to refactor movement into one location based on target & ability to get there.
-            // Going from A to B just makes me fall into water/holes if they're on the path.
-            // dw.move(target.x, target.y)
-            // return
-        }
-
         // If we can't use the skill, skip.
-        if (!dw.canUseSkillCd(skillToUse)) {
+        if (!dw.canUseRune(skillToUse, target.id) || skillToUse == undefined) {
           return
         }
 
         // Finally, use the skill to attack.
-        dw.useSkill(skillToUse, target.id)
+        dw.useRune(skillToUse, target.id)
     }
 
     // Main loop for combat.
     public combatLoop() {
-        const target = targetManager.nextTarget();
+        const target = targetManager.nextTarget()
 
         // Do nothing if we have no target. Should we begin to wonder?
         if (!target) {
@@ -114,21 +107,21 @@ export class CombatManager {
 
         // Check if we're in combat already & defend ourselves if so.
         if (this.isInCombat()) {
-            this.handleCombat(target);
+            this.handleCombat(target)
             return;
         }
 
         // If we're not in combat, check if we need to rest.
         if (this.needsRest()) {
-            this.heal();
-            return;
+            this.heal()
+            return
         }
 
         // If we're not in combat, check if we're ready to fight & not in defense mode.
         if (this.isReadyToFight() && !this.defenseMode) {
             // If we're ready to fight, attack the target.
-            this.attemptAttack(target);
-            return;
+            this.attemptAttack(target)
+            return
         }
     }
 }

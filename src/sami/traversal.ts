@@ -30,7 +30,7 @@ export function traversalLoop()  {
 }
 
 // Function to get breadcrumbs within line of site of the character. Sorted by distance from character.
-export function getBreadcrumbsInLineOfSight() : Pick<Breadcrumb, 'x' | 'y' | 'value'>[] {
+export function getBreadcrumbsInLineOfSight() : Breadcrumb[] {
     const cx = dw.c.x
     const cy = dw.c.y
 
