@@ -1,76 +1,83 @@
 import { PASSABLE_TERRAIN } from './consts'
 
 export type Breadcrumb = {
-  x: number
-  y: number
-  z: number
-  value: number
-  time: number
+    x: number
+    y: number
+    z: number
+    value: number
+    time: number
+    walkable: boolean
 }
 
-let breadcrumbs = new Array<Breadcrumb>()
-let range = 20
+let breadcrumbs: Breadcrumb[] = new Array<Breadcrumb>()
+let range: number = 5
 
-function getBreadcrumb(x: number, y: number, z: number) {
-  const breadcrumb = breadcrumbs.find(
-    (b) => b.x === x && b.y === y && b.z === z,
-  )
-
-  if (!breadcrumb) {
-    return 0
-  }
-
-  return breadcrumb.value
+function getBreadcrumb(x: number, y: number, z: number): Breadcrumb | undefined {
+    return breadcrumbs.find(
+        (b: Breadcrumb) => b.x === x && b.y === y && b.z === z,
+    )
 }
 
-export default function getBreadcrumbs() {
-  const result = new Array<Pick<Breadcrumb, 'x' | 'y' | 'value'>>()
+export default function getBreadcrumbs(): Breadcrumb[] {
+  const result = new Array<Breadcrumb>()
 
   for (let wy = Math.floor(dw.c.y - range); wy <= dw.c.y + range; wy++) {
     for (let wx = Math.floor(dw.c.x - range); wx <= dw.c.x + range; wx++) {
-      const wall = dw.getTerrain(wx, wy, dw.c.z)
-      const floor = dw.getTerrain(wx, wy, dw.c.z - 1)
-
-      if (
-        wall === undefined
-        || floor === undefined
-        || !PASSABLE_TERRAIN.includes(wall)
-        || PASSABLE_TERRAIN.includes(floor)
-      ) {
-        continue
-      }
-
-      result.push({ x: wx, y: wy, value: getBreadcrumb(wx, wy, dw.c.z) })
+        const breadcrumb: Breadcrumb | undefined = getBreadcrumb(wx, wy, dw.c.z)
+        if (breadcrumb) {
+            result.push(breadcrumb)
+        }
     }
   }
 
   return result
 }
 
-function dropBreadcrumb() {
-  const x = Math.floor(dw.c.x)
-  const y = Math.floor(dw.c.y)
-  const z = Math.floor(dw.c.z)
+function isWalkable(x: number, y: number, z: number): boolean {
+    let isWalkable: boolean
+    const wall: number | undefined = dw.getTerrain(x, y, z)
+    const floor: number | undefined = dw.getTerrain(x, y, z - 1)
 
-  breadcrumbs.forEach((b) => b.value *= 0.999)
+    isWalkable = !(wall === undefined
+        || floor === undefined
+        || !PASSABLE_TERRAIN.includes(wall)
+        || PASSABLE_TERRAIN.includes(floor));
 
-  for (let dy = -range; dy <= range; dy++) {
-    for (let dx = -range; dx <= range; dx++) {
-      const breadcrumb = breadcrumbs.find(
-        (b) => b.x === x + dx && b.y === y + dy && b.z === z,
-      )
-
-      const value = 1 / (1 + Math.abs(dx) + Math.abs(dy))
-
-      if (breadcrumb) {
-        breadcrumb.value = Math.max(breadcrumb.value, value)
-        breadcrumb.time = Date.now()
-        continue
-      }
-
-      breadcrumbs.push({ x: x + dx, y: y + dy, z, value, time: Date.now() })
-    }
-  }
+    return isWalkable
 }
 
-setInterval(dropBreadcrumb, 100)
+function dropBreadcrumbs() {
+    // Get character location.
+    const cx: number = Math.floor(dw.c.x)
+    const cy: number = Math.floor(dw.c.y)
+    const cz: number = Math.floor(dw.c.z)
+
+    // Lessen value of breadcrumbs over time. Causes circles to visually decrease in size.
+    breadcrumbs.forEach((b: Breadcrumb) => b.value *= 0.9)
+
+    // Iterate through X & Y in range.
+    for (let ry: number = -range; ry <= range; ry++) {
+        for (let rx: number = - range; rx <= range; rx++) {
+            const cpX: number = cx + rx
+            const cpY: number = cy + ry
+
+            // Get breadcrumb representing current checkpoint.
+            const breadcrumb: Breadcrumb | undefined = getBreadcrumb(cpX, cpY, cz)
+
+            // Value of the current checkpoint in relation to the absolute value of current checkpoint range.
+            const value: number = 1 / (1 + Math.abs(rx) + Math.abs(ry))
+
+            // If we already have a breadcrumb for this checkpoint, update it and continue onto the next.
+            if (breadcrumb) {
+                breadcrumb.value = Math.max(breadcrumb.value, value)
+                breadcrumb.time = Date.now()
+                continue
+            }
+
+            // No breadcrumb for this checkpoint yet, create one.
+            breadcrumbs.push({x: cpX, y: cpY, z: cz, value: value, time: Date.now(), walkable: isWalkable(cpX, cpY, cz)})
+        }
+    }
+}
+
+setInterval(dropBreadcrumbs, 500)

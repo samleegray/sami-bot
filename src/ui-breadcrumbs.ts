@@ -23,12 +23,12 @@ dw.on('drawUnder', (ctx, cx, cy) => {
   ]
 
   ctx.lineWidth = 2
-  ctx.fillStyle = '#ffff0040'
 
   getBreadcrumbs().forEach((breadcrumb) => {
     if (breadcrumb.value <= 0) {
       return
     }
+      ctx.fillStyle = breadcrumb.walkable ? '#ffff0040' : '#e81a1340'
 
     const [x, y] = transpose(breadcrumb.x + 0.5, breadcrumb.y + 0.5)
 
