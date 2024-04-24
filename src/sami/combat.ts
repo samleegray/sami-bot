@@ -62,7 +62,7 @@ export class CombatManager {
         dw.setTarget(target.id)
 
         // Check if we need to heal. Heal if we're less than 1/3 hp.
-        if (dw.c.hp < dw.c.maxHp-(dw.c.maxHp/3)) {
+        if (dw.c.hp < dw.c.maxHp-(dw.c.maxHp/4)) {
             this.heal()
         }
 
