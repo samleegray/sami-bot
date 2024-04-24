@@ -1,13 +1,14 @@
-const esbuild = require('esbuild')
+const { context } = require('esbuild')
 const { app, BrowserWindow, ipcMain } = require('electron')
-const path = require("node:path");
-const process = require("node:process");
-const fs = require('node:fs');
+const { join } = require("node:path");
+const { versions } = require("node:process");
+const { writeFile } = require('node:fs');
 
 const config = require('./config')
 const tracking = require('./tracking')
 
-const chromeVersion = process.versions.chrome.split('.').shift()
+app.setPath('userData', join(__dirname, 'data'))
+const chromeVersion = versions.chrome.split('.').shift()
 
 function log(...args) {
   console.log(new Date().toLocaleTimeString('en-GB'), ...args)
@@ -136,7 +137,7 @@ async function run() {
     }
 
     const contentStartsAt = dataUrl.indexOf('base64,') + 7
-    fs.writeFile(
+    writeFile(
       `./recordings/${new Date().toISOString().substring(0, 19)}.mp4`,
       Buffer.from(dataUrl.substring(contentStartsAt), 'base64'),
       (err) => {
@@ -153,7 +154,7 @@ async function run() {
       backgroundThrottling: false,
 
       contextIsolation: false,
-      preload: path.join(__dirname, "preload.js"),
+      preload: join(__dirname, "preload.js"),
     },
   })
 
@@ -174,7 +175,7 @@ async function run() {
       await ctx.dispose()
     }
 
-    if (url === 'https://deepestworld.com/login') {
+    if (url.startsWith('https://deepestworld.com/login')) {
       await win.webContents.executeJavaScript(`
         document.querySelector("input#username").value = ${JSON.stringify(config.username)};
         document.querySelector("input#password").value = ${JSON.stringify(config.password)};
@@ -183,18 +184,32 @@ async function run() {
       return
     }
 
-    if (url.startsWith('https://deepestworld.com/perso/list')) {
+    if (url === 'https://deepestworld.com/') {
       await win.webContents.executeJavaScript(`
-        [...document.querySelectorAll("a")]
-          .filter((a) => a.href.startsWith("https://deepestworld.com/game/") && a.innerHTML === ${JSON.stringify(config.characterName)})
+        [...document.querySelectorAll('a')]
+          .filter((a) => a.innerHTML === 'Play Now')
           .shift()
           ?.click();
       `)
       return
     }
 
-    if (url.startsWith('https://deepestworld.com/game/')) {
-      ctx = await esbuild.context({
+    if (url === 'https://deepestworld.com/game') {
+      while (!(await win.webContents.executeJavaScript(`
+        !!document.querySelector("div[data-click='playGame']");
+      `))) {
+        log(`Waiting for play game button to appear`)
+        await new Promise((resolve) => setTimeout(resolve, 200))
+      }
+
+      log(`Entering game`)
+      await win.webContents.executeJavaScript(`
+        document.querySelector("div[data-click='playGame']").click();
+      `)
+
+      await new Promise((resolve) => setTimeout(resolve, 200))
+
+      ctx = await context({
         entryPoints: [config.script],
         bundle: true,
         target: `chrome${chromeVersion}`,
@@ -223,15 +238,15 @@ async function run() {
               log('Updating code in game')
 
               try {
-                while (!(await win.webContents.executeJavaScript(`dw.connected`))) {
+                while (!(await win.webContents.executeJavaScript(`!!dw.c`))) {
                   log(`Waiting for connection to be established`)
                   await new Promise((resolve) => setTimeout(resolve, 200))
                 }
 
                 await win.webContents.executeJavaScript(`
-                  document.querySelector("#stop-code").click();
+                  document.querySelector("[data-click='stopCode']").click();
                   dw.editor.session.setValue(${JSON.stringify(result.outputFiles[0].text)});
-                  document.querySelector("#start-code").click();
+                  document.querySelector("[data-click='startCode']").click();
                 `)
 
                 log(`Code updated`)
