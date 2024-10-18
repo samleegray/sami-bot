@@ -39,7 +39,7 @@ for (const chunkName in dw.chunks) {
 
 dw.on('seenChunks', (data) => {
   for (const chunkName in data) {
-    const chunk = data[chunkName].terrain[0]
+    const chunk = data[chunkName][0]
 
     const [l, y, x] = chunkName.split('.').map(Number)
 
@@ -74,7 +74,7 @@ dw.on('unseenChunks', (chunkName) => {
 
 for (let i = 0; i < dw.entities.length; i++) {
   const entity = dw.entities[i]
-  if (!dw.md.entities[entity.md]?.canCollide) {
+  if (!dw.mdInfo[entity.md].canCollide) {
     continue
   }
 
@@ -93,7 +93,7 @@ for (let i = 0; i < dw.entities.length; i++) {
 dw.on('seenObjects', () => {
   for (let i = 0; i < dw.entities.length; i++) {
     const entity = dw.entities[i]
-    if (!dw.md.entities[entity.md]?.canCollide) {
+    if (!dw.mdInfo[entity.md].canCollide) {
       continue
     }
 
@@ -125,7 +125,7 @@ addMenuButton('📦', 'Toggle Collision Boxes', () => {
   dw.set('showCollisionBoxes', show)
 })
 
-dw.on('drawEnd', (ctx, cx, cy) => {
+dw.on('drawEnd', (ctx) => {
   if (!show) {
     return
   }
@@ -134,29 +134,46 @@ dw.on('drawEnd', (ctx, cx, cy) => {
   const mx = width / 2
   const my = height / 2
 
-  const transpose = (wx: number, wy: number): [number, number] => [
-    mx + Math.floor((wx - cx) * dw.constants.PIXELS_PER_UNIT),
-    my + Math.floor((wy - cy) * dw.constants.PIXELS_PER_UNIT),
-  ]
-
   const collisionObjectsInCurrentLayer = collisionObjects.filter(o => o.z === dw.c.z)
 
   ctx.lineWidth = 2
+
+  for (let i = 0; i < dw.entities.length; i++) {
+    const entity = dw.entities[i]
+    const { w, h } = dw.getHitbox(entity.md, 'v' in entity ? entity.v : 0)
+    const { w: pw, h: ph } = dw.getPlacebox(entity.md, 'v' in entity ? entity.v : 0)
+
+    if (w === pw && h === ph) {
+      continue
+    }
+
+    const x = dw.toCanvasX(entity.x)
+    const y = dw.toCanvasY(entity.y - ph)
+    ctx.strokeStyle = '#FF000080'
+    ctx.fillStyle = '#FF000020'
+    ctx.beginPath()
+    ctx.rect(
+      x - pw * dw.constants.PX_PER_UNIT_ZOOMED / 2,
+      y,
+      pw * dw.constants.PX_PER_UNIT_ZOOMED,
+      ph * dw.constants.PX_PER_UNIT_ZOOMED,
+    )
+    ctx.stroke()
+    ctx.fill()
+  }
 
   for (const collisionObject of collisionObjectsInCurrentLayer) {
     if (dw.c.z !== collisionObject.z) {
       continue
     }
 
-    const [x, y] = transpose(
-      collisionObject.x - collisionObject.w / 2,
-      collisionObject.y - collisionObject.h,
-    )
+    const x = dw.toCanvasX(collisionObject.x - collisionObject.w / 2)
+    const y = dw.toCanvasY(collisionObject.y - collisionObject.h)
 
     if (
-      x + collisionObject.w * dw.constants.PIXELS_PER_UNIT < 0
+      x + collisionObject.w * dw.constants.PX_PER_UNIT_ZOOMED < 0
       || x > ctx.canvas.width
-      || y + collisionObject.h * dw.constants.PIXELS_PER_UNIT < 0
+      || y + collisionObject.h * dw.constants.PX_PER_UNIT_ZOOMED < 0
       || y > ctx.canvas.height
     ) {
       continue
@@ -168,8 +185,8 @@ dw.on('drawEnd', (ctx, cx, cy) => {
     ctx.rect(
       x,
       y,
-      collisionObject.w * dw.constants.PIXELS_PER_UNIT,
-      collisionObject.h * dw.constants.PIXELS_PER_UNIT,
+      collisionObject.w * dw.constants.PX_PER_UNIT_ZOOMED,
+      collisionObject.h * dw.constants.PX_PER_UNIT_ZOOMED,
     )
     ctx.stroke()
     ctx.fill()
@@ -177,24 +194,23 @@ dw.on('drawEnd', (ctx, cx, cy) => {
 
   for (let i = 0; i < dw.entities.length; i++) {
     const entity = dw.entities[i]
-    if (dw.c.z !== entity.z || dw.md.entities[entity.md].isPlayer || dw.md.entities[entity.md]?.canCollide) {
+    if (dw.c.z !== entity.z || dw.mdInfo[entity.md].isPlayer || dw.mdInfo[entity.md].canCollide) {
       continue
     }
 
     const { w, h } = dw.getHitbox(entity.md, 'v' in entity ? entity.v : 0)
 
-    const [x, y] = transpose(
-      entity.x,
-      entity.y - h,
-    )
+    const x = dw.toCanvasX(entity.x)
+    const y = dw.toCanvasY(entity.y - h)
+
     ctx.strokeStyle = '#00FF00'
     ctx.fillStyle = ctx.strokeStyle + '40'
     ctx.beginPath()
     ctx.rect(
-      x - w * dw.constants.PIXELS_PER_UNIT / 2,
+      x - w * dw.constants.PX_PER_UNIT_ZOOMED / 2,
       y,
-      w * dw.constants.PIXELS_PER_UNIT,
-      h * dw.constants.PIXELS_PER_UNIT,
+      w * dw.constants.PX_PER_UNIT_ZOOMED,
+      h * dw.constants.PX_PER_UNIT_ZOOMED,
     )
     ctx.stroke()
     ctx.fill()
@@ -204,11 +220,38 @@ dw.on('drawEnd', (ctx, cx, cy) => {
   ctx.fillStyle = ctx.strokeStyle + '40'
   ctx.beginPath()
   ctx.rect(
-    mx - playerHitbox.w * dw.constants.PIXELS_PER_UNIT / 2,
-    my - playerHitbox.h * dw.constants.PIXELS_PER_UNIT,
-    playerHitbox.w * dw.constants.PIXELS_PER_UNIT,
-    playerHitbox.h * dw.constants.PIXELS_PER_UNIT,
+    mx - playerHitbox.w * dw.constants.PX_PER_UNIT_ZOOMED / 2,
+    my - playerHitbox.h * dw.constants.PX_PER_UNIT_ZOOMED,
+    playerHitbox.w * dw.constants.PX_PER_UNIT_ZOOMED,
+    playerHitbox.h * dw.constants.PX_PER_UNIT_ZOOMED,
   )
   ctx.stroke()
   ctx.fill()
+})
+
+dw.on('drawUnder', (ctx) => {
+  if (!show) {
+    return
+  }
+
+  ctx.lineWidth = 2
+  ctx.strokeStyle = '#FFFFFF7F'
+
+  for (const plot of dw.a.plots) {
+    if (dw.distance(dw.c.x, dw.c.y, plot.x, plot.y) > 32) {
+      continue
+    }
+
+    const x = dw.toCanvasX(plot.x)
+    const y = dw.toCanvasY(plot.y)
+
+    ctx.beginPath()
+    ctx.rect(
+      x,
+      y,
+      plot.w * dw.constants.PX_PER_UNIT_ZOOMED,
+      plot.h * dw.constants.PX_PER_UNIT_ZOOMED,
+    )
+    ctx.stroke()
+  }
 })

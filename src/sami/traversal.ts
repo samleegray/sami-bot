@@ -2,6 +2,7 @@ import getBreadcrumbs from '../breadcrumbs'
 import { hasLineOfSight }  from "../hasLineOfSight";
 import { Breadcrumb } from "../breadcrumbs";
 import { TargetManager } from "./target";
+import {getNextSafeMonster, resetTargets, Target} from "./monsters";
 
 const targetManager = new TargetManager();
 
@@ -11,22 +12,52 @@ type Location = {
     z: number
 }
 
+let hadTarget = false
+let lastTarget: Target | undefined
 export function traversalLoop()  {
     // Get next target.
-    // let target = targetManager.nextTarget()
-    // if (target !== undefined) {
-    //     if (dw.md.entities[target.md].isMonster && dw.distance(target.x, target.y, dw.c.x, dw.c.y) < 3.75) {
-    //         return
-    //     }
-    //     let closest = getClosestBreadcrumb(target.x, target.y, target.z)
-    //     dw.move(closest.x, closest.y)
-    //     return
-    // }
+  let target = getNextSafeMonster()
 
+  // if (target.entity.hp <= 0 || !dw.c.combat) {
+  //   hadTarget = false
+  // }
+  // does the target entity still exist?
+  if (dw.c.combat) {
+    dw.move()
+    return
+  }
+
+  if (target !== undefined && target != null) {
+    if (lastTarget !== undefined && target.entity.id != lastTarget.entity.id && dw.entities.filter(e => e.id == lastTarget.entity.id).length > 0) {
+      lastTarget = target
+    }
+
+    if (dw.entities.filter(e => e.id == target.entity.id).length == 0) {
+      hadTarget = false
+      lastTarget = undefined
+      resetTargets()
+    }
+
+    lastTarget = target
+    console.log("target: x:" + target.entity.x + ' ' + "y: " + target.entity.y + ' ' + "c.x: " + dw.c.x + ' ' + "c.y: " + dw.c.y + ' ' + "hadTarget: " + hadTarget)
+    dw.setTarget(target.entity.id)
+    const distanceToTarget = dw.distance(dw.c.x, dw.c.y, target.entity.x, target.entity.y)
+    if (hadTarget && !(distanceToTarget > 3)) {
+      return
+    }
+    let closest = getClosestBreadcrumb(target.entity.x, target.entity.y)
+    dw.move(closest.x, closest.y)
+    hadTarget = true
+    return
+  } else {
+    hadTarget = false
+  }
+
+  console.log("Moving to breadcrumb.")
     let losBreadcrumbs = getBreadcrumbsInLineOfSight()
     let losBreadcrumb = losBreadcrumbs[0]
 
-    // dw.move(losBreadcrumb.x, losBreadcrumb.y)
+    dw.move(losBreadcrumb.x, losBreadcrumb.y)
 }
 
 // Function to get breadcrumbs within line of site of the character. Sorted by distance from character.

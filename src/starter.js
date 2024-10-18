@@ -1,6 +1,6 @@
 const attackMode = false
 
-function basicAttack() {
+async function basicAttack() {
   if (!attackMode) {
     return
   }
@@ -14,26 +14,39 @@ function basicAttack() {
   // Show target in game UI
   dw.setTarget(target.id)
 
-  const skillIndex = dw.character.skills.findIndex(
-    (skill) => skill && skill.md === 'attackRune'
+  let runeMd = 'attackRune'
+  if (dw.c.gear.mainHand) {
+    const weaponTags = dw.mdInfo[dw.c.gear.mainHand?.md]?.tags
+    if (weaponTags?.has('rangedWeapon')) {
+      runeMd = 'aimingRune'
+    }
+
+    if (weaponTags?.has('casterWeapon')) {
+      runeMd = 'castingRune'
+    }
+  }
+
+  const skillIndex = dw.character.skillBag.findIndex(
+    (skill) => skill && skill.md === runeMd
   )
   if (skillIndex === -1) {
     // No attackRune found
     return
   }
 
-  if (!dw.canUseSkillRange(skillIndex, target.x, target.y)) {
+  if (!dw.isInRange(skillIndex, target.x, target.y)) {
     // Too far away
     dw.move(target.x, target.y)
     return
   }
 
-  if (!dw.canUseSkillCd(skillIndex) || !dw.canUseSkillCost(skillIndex)) {
-    // Skill is either on cooldown or not enough resources
+  if (dw.isOnCd(skillIndex) || !dw.canPayCost(skillIndex) || dw.c.casting) {
+    // Skill is either on cooldown, not enough resources or we are already casting sth
     return
   }
 
-  dw.useSkill(skillIndex, target.id)
+  dw.stop()
+  await dw.useSkill(skillIndex, target.id)
 }
 
 setInterval(basicAttack, 250)

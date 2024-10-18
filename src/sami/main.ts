@@ -9,6 +9,7 @@ import '../ui-breadcrumbs';
 import '../ui-line-of-sight'
 import '../ui-collision-boxes'
 import '../ui-xp-tracker'
+// import '../ui-monster-distance'
 import {traversalLoop} from "./traversal";
 
 const gatheringManager = new GatheringManager()
@@ -42,21 +43,21 @@ function mainLoop() {
     // }
     //
     // // If we're not in defense mode, and have no gathering target proceed to combat.
-    // if (!combatManager.defenseMode && shouldAttack && !gatheringManager.hasGatherTarget) {
-    //     console.log("attacking");
-    //     combatManager.combatLoop();
-    // }
-
-    if (shouldExplore && !combatManager.isInCombat() && !gatheringManager.hasGatherTarget) {
-        console.log("exploring");
-        traversalLoop()
-        // exploreLoop();
-    } else {
-        console.log("not exploring hasTarget: " + combatManager.hasTarget + " isInCombat: " + combatManager.isInCombat() + " hasGatherTarget: " + gatheringManager.hasGatherTarget);
+    if (!combatManager.defenseMode && shouldAttack && !gatheringManager.hasGatherTarget) {
+        // console.log("attacking");
+        combatManager.combatLoop();
     }
 
-    if (!combatManager.defenseMode && shouldAttack && !gatheringManager.hasGatherTarget) {
-        console.log("attacking");
+    // if (shouldExplore && !combatManager.isInCombat() && !gatheringManager.hasGatherTarget) {
+    //     // console.log("exploring");
+    //     traversalLoop()
+    //     // exploreLoop();
+    // } else {
+    //     console.log("not exploring hasTarget: " + combatManager.hasTarget + " isInCombat: " + combatManager.isInCombat() + " hasGatherTarget: " + gatheringManager.hasGatherTarget);
+    // }
+
+    if (!combatManager.defenseMode && shouldAttack) {
+        // console.log("attacking");
         combatManager.combatLoop();
     }
 
