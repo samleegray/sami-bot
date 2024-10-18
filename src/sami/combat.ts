@@ -6,9 +6,9 @@ export class CharInfo {
     minHp: number
     minMp: number
     meleeSkill: number
-    magicSkill: number
-    healSkill: number
-    shieldSkill: number
+    // magicSkill: number
+    // healSkill: number
+    // shieldSkill: number
     restingHealThreshold: number
     meleeRange: number
 
@@ -16,9 +16,9 @@ export class CharInfo {
         this.minHp = 240
         this.minMp = 130
         this.meleeSkill = 0
-        this.magicSkill = 1
-        this.healSkill = 2
-        this.shieldSkill = 4
+        // this.magicSkill = 1
+        // this.healSkill = 2
+        // this.shieldSkill = 4
         this.restingHealThreshold = this.minHp
         this.meleeRange = 0.5
     }
@@ -43,7 +43,7 @@ export class CombatManager {
     }
 
     private canAttack() {
-        return dw.canUseSkillCd(this.charInfo.meleeSkill) || dw.canUseSkillCd(this.charInfo.magicSkill)
+        return !dw.isOnCd(this.charInfo.meleeSkill) //|| dw.isOnCd(this.charInfo.magicSkill)
     }
 
     private needsRest() {
@@ -54,7 +54,7 @@ export class CombatManager {
         if (!dw.canUseSkillCd()) {
             return;
         }
-        dw.useSkill(this.charInfo.healSkill, dw.c.id)
+        //dw.useSkill(this.charInfo.healSkill, dw.c.id)
     }
 
     // Sets target, decides if we should heal, determines if we can attack and then tries to.
@@ -62,9 +62,9 @@ export class CombatManager {
         dw.setTarget(target.id)
 
         // Check if we need to heal. Heal if we're less than 1/3 hp.
-        if (dw.c.hp < dw.c.maxHp-(dw.c.maxHp/4)) {
-            this.heal()
-        }
+        // if (dw.c.hp < dw.c.maxHp-(dw.c.maxHp/4)) {
+        //     this.heal()
+        // }
 
         // Check if we can attack. Attack if we can.
         if (this.canAttack()) {
@@ -75,22 +75,25 @@ export class CombatManager {
     // Attempt attack.
     private attemptAttack(target: any) {
         // The skill to finally use.
-        let skillToUse
+        let skillToUse = 0
 
         // Go with magic first, secondary melee if they're close.
-        if (dw.isInRange(this.charInfo.magicSkill, target)) {
-            skillToUse = this.charInfo.magicSkill
-        } else if (dw.isInRange(this.charInfo.meleeSkill, target)) {
+        // if (dw.isInRange(this.charInfo.magicSkill, target)) {
+        //     skillToUse = this.charInfo.magicSkill
+        // } else
+        if (dw.isInRange(this.charInfo.meleeSkill, target)) {
             skillToUse = this.charInfo.meleeSkill
+        } else {
+          dw.move(target.x, target.y)
         }
 
         // If we can't use the skill, skip.
-        if (!dw.canUseRune(skillToUse, target.id) || skillToUse == undefined) {
+        if (!dw.canUseSkill(skillToUse, target.id) || skillToUse == undefined) {
           return
         }
 
         // Finally, use the skill to attack.
-        dw.useRune(skillToUse, target.id)
+        dw.useSkill(skillToUse, target.id)
     }
 
     // Main loop for combat.
@@ -107,18 +110,20 @@ export class CombatManager {
 
         // Check if we're in combat already & defend ourselves if so.
         if (this.isInCombat()) {
+            console.log("in combat")
             this.handleCombat(target)
             return;
         }
 
         // If we're not in combat, check if we need to rest.
-        if (this.needsRest()) {
-            this.heal()
-            return
-        }
+        // if (this.needsRest()) {
+        //     this.heal()
+        //     return
+        // }
 
         // If we're not in combat, check if we're ready to fight & not in defense mode.
         if (this.isReadyToFight() && !this.defenseMode) {
+            console.log("ready to fight")
             // If we're ready to fight, attack the target.
             this.attemptAttack(target)
             return
