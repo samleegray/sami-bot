@@ -2,13 +2,14 @@ import { hasLineOfSight } from './hasLineOfSight'
 import { addMenuButton } from './ui-buttons'
 
 let show = dw.get('showLineOfSight') ?? true
+const ZOOM = dw.constants.PX_PER_UNIT_ZOOMED / dw.constants.PX_PER_UNIT
 
 addMenuButton('👀', 'Toggle Line of Sight', () => {
   show = !show
   dw.set('showLineOfSight', show)
 })
 
-dw.on('drawUnder', (ctx, cx, cy) => {
+dw.on('drawUnder', (ctx) => {
   if (!show) {
     return
   }
@@ -17,12 +18,7 @@ dw.on('drawUnder', (ctx, cx, cy) => {
   const mx = width / 2
   const my = height / 2
 
-  const transpose = (wx: number, wy: number) => [
-    mx + Math.floor((wx - cx) * dw.constants.PIXELS_PER_UNIT),
-    my + Math.floor((wy - cy) * dw.constants.PIXELS_PER_UNIT),
-  ]
-
-  ctx.lineWidth = 4
+  ctx.lineWidth = ZOOM
 
   dw.entities.forEach((entity) => {
     if (entity.z !== dw.c.z) {
@@ -30,15 +26,16 @@ dw.on('drawUnder', (ctx, cx, cy) => {
     }
 
     if (
-      !('ai' in entity)
-      && !dw.md.entities[entity.md].canChop
-      && !dw.md.entities[entity.md].canGather
-      && !dw.md.entities[entity.md].canMine
+      !dw.mdInfo[entity.md].ai
+      && !dw.mdInfo[entity.md].canChop
+      && !dw.mdInfo[entity.md].canHarvest
+      && !dw.mdInfo[entity.md].canMine
     ) {
       return
     }
 
-    const [x, y] = transpose(entity.x, entity.y)
+    const x = dw.toCanvasX(entity.x)
+    const y = dw.toCanvasY(entity.y)
     ctx.strokeStyle = hasLineOfSight(entity) ? '#00ff0080' : '#ff000080'
     ctx.beginPath()
     ctx.moveTo(mx, my)
